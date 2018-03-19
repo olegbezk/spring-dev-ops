@@ -1,4 +1,4 @@
-package guru.springframework.test;
+package guru.springframework.test.config;
 
 import guru.springframework.test.jms.FakeJmsBroker;
 import org.springframework.beans.factory.annotation.Value;
