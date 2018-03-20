@@ -1,0 +1,4 @@
+custom:
+  springframework:
+    profile:
+      message: This is DEV profile
