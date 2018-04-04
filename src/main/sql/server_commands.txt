@@ -1,0 +1,57 @@
+sudo docker run -d --name prod_mysql -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=password  mysql/mysql-server:latest
+
+docker exec -it prod_mysql bash
+
+mysql -p
+
+CREATE DATABASE proddatabase;
+
+grant all privileges on proddatabase.* to 'proddatabase_owner'@'localhost' identified by “DatabasePassword";
+
+sudo yum install java-1.8.0-openjdk
+
+#Bash env on app server
+export SPRING_DATASOURCE_URL=jdbc:mysql://18.195.127.93:3306/proddatabase
+export SPRING_DATASOURCE_USERNAME=proddatabase_owner
+export SPRING_DATASOURCE_PASSWORD=DatabasePassword
+
+#User update
+DROP USER 'proddatabase_owner'@'localhost';
+grant all privileges on proddatabase.* to 'proddatabase_owner'@'%' identified by "DatabasePassword";
+FLUSH PRIVILEGES;
+
+#run command on app server
+java -jar ./spring-core-devops-0.0.1.jar --spring.jpa.hibernate.ddl-auto=update
+
+#application.properties on app server
+spring.datasource.url=jdbc:mysql://18.195.127.93:3306/proddatabase
+spring.datasource.username=proddatabase_owner
+spring.datasource.password=DatabasePassword
+spring.jpa.hibernate.ddl-auto=update
+
+#springbootservice
+1 sudo su
+2 cd /etc/systemd/system
+3 vi springboot.service
+4 systemctl daemon-reload
+5 systemctl enable springboot.service
+6 systemctl start springboot
+
+## View console output
+tail -f  /var/log/messages
+
+### File name springboot.service ####
+
+[Unit]
+Description=Spring Boot Service
+After=syslog.target
+
+[Service]
+User=ec2-user
+# set dir to location of application.properties and springboot jar
+WorkingDirectory=/home/ec2-user
+ExecStart=/bin/java -jar spring-core-devops-0.0.1.jar
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
